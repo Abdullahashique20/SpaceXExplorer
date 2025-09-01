@@ -1,75 +1,88 @@
+import { Card, SearchBar } from '@rneui/base';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Dimensions, FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { getListData } from './spaceXService';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
+
+  const [data, setData] = useState([])
+  let width = Dimensions.get('window').width
+
+  const getInfoList = async () => {
+    getListData().then((res) => {
+      console.log("ressssssss", res);
+      setData(res.data)
+
+    }).catch((err) => {
+      console.log("errrrrrrr", err);
+
+    })
+  }
+
+  useEffect(() => {
+    getInfoList()
+  }, [])
+
+  const renderItem = ({ item, index }) => {
+
+    let date = new Date(item?.date_utc)
+
+    let formated = date.toLocaleDateString()
+
+    return (
+      <Card containerStyle={{ borderRadius: 10, width: '43%' }}>
+        <TouchableOpacity onPress={() => router.push({ pathname: '/listDetails', params: { launchpad: JSON.stringify(item) } })}>
+          <View key={index} style={{ flexDirection: 'row', flex: 1, justifyContent: "space-between" }}>
+            <View style={{}}>
+              <Image
+                source={{ uri: item?.links?.patch?.small }}
+                style={{ width: 60, height: 60, resizeMode: 'contain', }}
+              />
+            </View>
+            <View style={{ paddingHorizontal: 5, }}>
+              <Text style={{ fontSize: 16 }}>{item?.name.length > 8 ? item?.name.substring(0, 8) + '...' : item?.name}</Text>
+              <Text style={{ fontSize: 11 }}>{formated}</Text>
+              <Text style={{ color: item?.success ? 'green' : 'red', fontSize: 13 }}>{item?.success ? 'Success' : 'Failed'}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Card>
+    )
+
+  }
+
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={{ flex: 1 }}>
+      <View style={{ height: StatusBar.currentHeight, backgroundColor: 'black' }}>
+        <StatusBar barStyle="light-content" />
+      </View>
+      <View>
+        <SearchBar />
+      </View>
+      <View style={{ flex: 1, alignItems: 'center' }}>
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item?.id}
+          renderItem={renderItem}
+          numColumns={width > 600 ? 3 : 2}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          onEndReachedThreshold={0.5}
+          // onEndReached={() => {
+
+          // }}
+          // style={{}}
+          contentContainerStyle={{}}
+
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* <Text style={{ fontSize: 32 }}>Homeeeee</Text> */}
+      </View>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+
