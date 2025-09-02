@@ -5,7 +5,7 @@ export const getListData = async () => {
     return resposnse
 }
 
-export const getListDetails = async (id: number) => {
-    let response = await api.get(`/v4/launchpads/:${id}`)
+export const getListDetails = async (id: string) => {
+    let response = await api.get(`https://api.spacexdata.com/v4/launchpads/${id}`)
     return response
 }
